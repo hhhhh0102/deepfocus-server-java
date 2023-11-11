@@ -1,0 +1,13 @@
+services:
+  postgres:
+    image: bitnami/postgresql:13
+    container_name: deepfocus-postgres
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: ${DFC_POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${DFC_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${DFC_POSTGRES_DB}
+    volumes:
+      - ./app/src/test/resources/deepfocus_db-init.sql:/docker-entrypoint-initdb.d/init.sql
