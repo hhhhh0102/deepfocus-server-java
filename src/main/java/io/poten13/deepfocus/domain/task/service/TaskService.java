@@ -81,7 +81,7 @@ public class TaskService {
     public void deleteTask(Long taskId, Long userId) {
         TaskModel task = taskReader.readById(taskId)
                 .orElseThrow(RuntimeException::new);
-        if (task.getUserId().equals(userId)) {
+        if (!task.getUserId().equals(userId)) {
             throw new RuntimeException();
         }
         subTaskCommander.deleteAllByTaskId(taskId);
