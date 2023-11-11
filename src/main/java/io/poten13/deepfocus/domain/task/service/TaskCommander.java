@@ -2,6 +2,7 @@ package io.poten13.deepfocus.domain.task.service;
 
 import io.poten13.deepfocus.domain.task.dto.command.CreateTaskCommand;
 import io.poten13.deepfocus.domain.task.dto.command.UpdateTaskCommand;
+import io.poten13.deepfocus.domain.task.dto.model.TaskModel;
 import io.poten13.deepfocus.domain.task.entity.Task;
 import io.poten13.deepfocus.domain.task.repository.TaskRepository;
 import io.poten13.deepfocus.domain.user.entity.User;
@@ -18,21 +19,22 @@ public class TaskCommander {
     private final UserRepository userRepository;
 
     @Transactional
-    public Task save(CreateTaskCommand command, Long userId) {
+    public TaskModel save(CreateTaskCommand command, String userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(RuntimeException::new);
-        return taskRepository.save(Task.from(command, user));
+        Task task = taskRepository.save(Task.from(command, user));
+        return TaskModel.from(task);
     }
 
     @Transactional
-    public Task update(Long taskId, UpdateTaskCommand command, Long userId) {
+    public TaskModel update(Long taskId, UpdateTaskCommand command, String userId) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(RuntimeException::new);
         if (!task.getUser().getUserId().equals(userId)) {
             throw new RuntimeException();
         }
         task.update(command);
-        return task;
+        return TaskModel.from(task);
     }
 
     public void deleteByTaskId(Long taskId) {

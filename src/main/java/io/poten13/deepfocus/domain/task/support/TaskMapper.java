@@ -4,9 +4,11 @@ import io.poten13.deepfocus.domain.task.controller.CreateSubTaskRequest;
 import io.poten13.deepfocus.domain.task.controller.CreateTaskRequest;
 import io.poten13.deepfocus.domain.task.controller.SubTaskResponse;
 import io.poten13.deepfocus.domain.task.controller.TaskResponse;
+import io.poten13.deepfocus.domain.task.controller.TaskStatsResponse;
 import io.poten13.deepfocus.domain.task.controller.UpdateSubTaskRequest;
 import io.poten13.deepfocus.domain.task.controller.UpdateTaskRequest;
 import io.poten13.deepfocus.domain.task.dto.TaskDto;
+import io.poten13.deepfocus.domain.task.dto.TaskStatsDto;
 import io.poten13.deepfocus.domain.task.dto.command.CreateSubTaskCommand;
 import io.poten13.deepfocus.domain.task.dto.command.CreateTaskCommand;
 import io.poten13.deepfocus.domain.task.dto.command.UpdateTaskCommand;
@@ -41,4 +43,6 @@ public interface TaskMapper {
     TaskResponse from(TaskDto task);
 
     SubTaskResponse from(SubTaskModel subTask);
+
+    TaskStatsResponse from(TaskStatsDto stats);
 }

@@ -11,10 +11,9 @@ import lombok.NoArgsConstructor;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.util.UUID;
 
 @Getter
 @Entity
@@ -23,8 +22,7 @@ import javax.persistence.Table;
 public class User extends BaseTimeEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    private String userId;
 
     private String userToken;
 
@@ -37,6 +35,7 @@ public class User extends BaseTimeEntity {
 
     public static User from(CreateUserCommand command) {
         User user = new User();
+        user.userId = UUID.randomUUID().toString();
         user.userToken = command.getUserToken();
         user.nickname = command.getNickname();
         user.roleType = RoleType.ROLE_USER;

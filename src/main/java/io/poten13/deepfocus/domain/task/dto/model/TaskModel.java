@@ -18,12 +18,12 @@ public class TaskModel {
     private final long spanMinute;
     private final LocalDate startDate;
     private final LocalDate endDate;
-    private final Long userId;
+    private final String userId;
 
 
     @QueryProjection
     public TaskModel(Long taskId, String title, long startTime, long endTime, long spanMinute,
-                     LocalDate startDate, LocalDate endDate, Long userId) {
+                     LocalDate startDate, LocalDate endDate, String userId) {
         this.taskId = taskId;
         this.title = title;
         this.startTime = startTime;

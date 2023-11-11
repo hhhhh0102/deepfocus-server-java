@@ -7,6 +7,7 @@ public class Constants {
     public static final String USER_TOKEN_HEADER_KEY = "X-User-Token";
     public static final String API_KEY = "api_key";
     public static final String OPEN_AI_CHAT_REQUEST_USER_MESSAGE_PATTERN = "Give {0} subtasks of task \"{1}\"";
+    public static final String TASK_STATS_KEY_PATTERN = "{0}:{1}:{2}";
     public static final String OPEN_AI_CHAT_REQUEST_SYSTEM_MESSAGE_ONE = "Give Korean answer";
     public static final String OPEN_AI_CHAT_REQUEST_SYSTEM_MESSAGE_TWO = "Use only \";\" for separating multiple answer";
 

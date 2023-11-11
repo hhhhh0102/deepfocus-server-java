@@ -1,6 +1,7 @@
 package io.poten13.deepfocus.domain.task.controller;
 
 import io.poten13.deepfocus.domain.task.dto.TaskDto;
+import io.poten13.deepfocus.domain.task.dto.TaskStatsDto;
 import io.poten13.deepfocus.domain.task.dto.command.CreateTaskCommand;
 import io.poten13.deepfocus.domain.task.dto.command.UpdateTaskCommand;
 import io.poten13.deepfocus.domain.task.service.TaskService;
@@ -50,7 +51,6 @@ public class TaskController {
         return ApiResponse.ok(response);
     }
 
-    // todo : 태스크 겹치는 조건 Excetion 로직 추가
     @PostMapping
     @Operation(summary = "태스크 생성")
     public ApiResponse<TaskResponse> createTask(@RequestBody CreateTaskRequest request) {
@@ -94,5 +94,16 @@ public class TaskController {
         return ApiResponse.ok(subTaskTitleList.stream()
                 .map(SubTaskRecommendResponse::new)
                 .toList());
+    }
+
+    @GetMapping("/statistics")
+    @Operation(summary = "태스크 통계 조회")
+    public ApiResponse<TaskStatsResponse> getTaskStats(
+            @RequestParam("year") int year, @RequestParam("month") int month) {
+        String userToken = SecurityContextHolder.getContext().getAuthentication().getName();
+        UserModel user = userService.getByUserToken(userToken);
+        TaskStatsDto stats = taskService.getUserMonthlyTaskStats(user.getUserId(), year, month);
+        TaskStatsResponse response = taskMapper.from(stats);
+        return ApiResponse.ok(response);
     }
 }

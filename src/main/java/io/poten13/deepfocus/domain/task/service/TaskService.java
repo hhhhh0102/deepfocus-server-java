@@ -1,25 +1,30 @@
 package io.poten13.deepfocus.domain.task.service;
 
+import com.mysema.commons.lang.Pair;
 import io.micrometer.core.lang.Nullable;
 import io.poten13.deepfocus.domain.task.client.OpenAIChatRequest;
 import io.poten13.deepfocus.domain.task.client.OpenAIChatResponse;
 import io.poten13.deepfocus.domain.task.client.OpenAIChatResponse.ChoiceResponse.MessageResponse;
 import io.poten13.deepfocus.domain.task.client.OpenAIClient;
 import io.poten13.deepfocus.domain.task.dto.TaskDto;
+import io.poten13.deepfocus.domain.task.dto.TaskStatsDto;
 import io.poten13.deepfocus.domain.task.dto.command.CreateTaskCommand;
 import io.poten13.deepfocus.domain.task.dto.command.UpdateTaskCommand;
 import io.poten13.deepfocus.domain.task.dto.model.SubTaskModel;
 import io.poten13.deepfocus.domain.task.dto.model.TaskModel;
-import io.poten13.deepfocus.domain.task.entity.Task;
+import io.poten13.deepfocus.domain.task.entity.TaskStats;
+import io.poten13.deepfocus.global.constants.Constants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,34 +32,38 @@ import java.util.stream.Collectors;
 public class TaskService {
     private final TaskCommander taskCommander;
     private final SubTaskCommander subTaskCommander;
+    private final TaskStatsCommander taskStatsCommander;
 
     private final TaskReader taskReader;
     private final SubTaskReader subTaskReader;
+    private final TaskStatsReader taskStatsReader;
 
     private final OpenAIClient openAIClient;
 
     @Transactional
-    public Long createTask(CreateTaskCommand command, Long userId) {
+    public Long createTask(CreateTaskCommand command, String userId) {
         // todo Exception 변경
         if (doesTaskTimeConflict(userId, command.getStartTime(),
                 command.getEndTime(), null)) {
             throw new RuntimeException();
         }
-        Task task = taskCommander.save(command, userId);
-        subTaskCommander.saveAll(task, command.getSubTasks());
+        TaskModel task = taskCommander.save(command, userId);
+        subTaskCommander.saveAll(task.getTaskId(), command.getSubTasks());
+        renewTaskStats(task);
         return task.getTaskId();
     }
 
     @Transactional
-    public void updateTask(Long taskId, UpdateTaskCommand command, Long userId) {
+    public void updateTask(Long taskId, UpdateTaskCommand command, String userId) {
         // todo Exception 변경
         if (doesTaskTimeConflict(userId, command.getStartTime(),
                 command.getEndTime(), taskId)) {
             throw new RuntimeException();
         }
-        Task task = taskCommander.update(taskId, command, userId);
-        subTaskCommander.deleteAll(task);
-        subTaskCommander.saveAll(task, command.getSubTasks());
+        TaskModel task = taskCommander.update(taskId, command, userId);
+        subTaskCommander.deleteAll(task.getTaskId());
+        subTaskCommander.saveAll(task.getTaskId(), command.getSubTasks());
+        renewTaskStats(task);
     }
 
     public TaskDto getTaskById(Long taskId) {
@@ -66,7 +75,7 @@ public class TaskService {
         return new TaskDto(task, subTasks);
     }
 
-    public List<TaskDto> getTaskList(LocalDate date, Long userId) {
+    public List<TaskDto> getTaskList(LocalDate date, String userId) {
         List<TaskModel> tasks = taskReader.readBetweenStartAndEndDate(date, userId);
         List<SubTaskModel> subTasks = subTaskReader.readByTaskIds(tasks.stream()
                 .map(TaskModel::getTaskId)
@@ -81,7 +90,7 @@ public class TaskService {
     }
 
     @Transactional
-    public void deleteTask(Long taskId, Long userId) {
+    public void deleteTask(Long taskId, String userId) {
         TaskModel task = taskReader.readById(taskId)
                 .orElseThrow(RuntimeException::new);
         if (!task.getUserId().equals(userId)) {
@@ -89,6 +98,7 @@ public class TaskService {
         }
         subTaskCommander.deleteAllByTaskId(taskId);
         taskCommander.deleteByTaskId(taskId);
+        renewTaskStats(task);
     }
 
     public List<String> recommendSubTaskTitleList(int limit, String taskTitle) {
@@ -101,7 +111,30 @@ public class TaskService {
                 .toList();
     }
 
-    private boolean doesTaskTimeConflict(Long userId, long startTime, long endTime, @Nullable Long currentTaskId) {
+    public TaskStatsDto getUserMonthlyTaskStats(String userId, int year, int month) {
+        String key = MessageFormat.format(Constants.TASK_STATS_KEY_PATTERN,
+                userId, year, month);
+        Optional<TaskStats> taskStats = taskStatsReader.readBy(key);
+        if (taskStats.isPresent()) {
+            return TaskStatsDto.exists(taskStats.get());
+        }
+        return TaskStatsDto.empty(userId, year, month);
+    }
+
+    private void renewTaskStats(TaskModel task) {
+        List<Pair<Integer, Integer>> yearMonthPairList = new ArrayList<>();
+        yearMonthPairList.add(new Pair<>(task.getStartDate().getYear(), task.getStartDate().getMonthValue()));
+        if (!task.getStartDate().equals(task.getEndDate())) {
+            yearMonthPairList.add(new Pair<>(task.getEndDate().getYear(), task.getEndDate().getMonthValue()));
+        }
+
+        for (Pair<Integer, Integer> yearMonthPair : yearMonthPairList) {
+            TaskStatsDto currentTaskStats = taskReader.getCurrentTaskStats(task.getUserId(), yearMonthPair.getFirst(), yearMonthPair.getSecond());
+            taskStatsCommander.upsert(currentTaskStats);
+        }
+    }
+
+    private boolean doesTaskTimeConflict(String userId, long startTime, long endTime, @Nullable Long currentTaskId) {
         List<TaskModel> overlappingTasks = taskReader.readBetweenUnixTime(userId, startTime, endTime);
 
         if (currentTaskId != null) {

@@ -5,6 +5,15 @@ spring:
     password: ${DFC_POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
+  data:
+    mongodb:
+      authentication-database: ${DFC_MONGO_AUTHENTICATION_DATABASE}
+      database: ${DFC_MONGO_DATABASE}
+      host: localhost
+      port: 27017
+      username: ${DFC_MONGO_USERNAME}
+      password: ${DFC_MONGO_PASSWORD}
+
 app:
   open-ai:
     api-key: ${DFC_OPEN_AI_KEY}
