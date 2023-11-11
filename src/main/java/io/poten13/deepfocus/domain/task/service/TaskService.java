@@ -1,5 +1,6 @@
 package io.poten13.deepfocus.domain.task.service;
 
+import io.micrometer.core.lang.Nullable;
 import io.poten13.deepfocus.domain.task.client.OpenAIChatRequest;
 import io.poten13.deepfocus.domain.task.client.OpenAIChatResponse;
 import io.poten13.deepfocus.domain.task.client.OpenAIChatResponse.ChoiceResponse.MessageResponse;
@@ -35,7 +36,8 @@ public class TaskService {
     @Transactional
     public Long createTask(CreateTaskCommand command, Long userId) {
         // todo Exception 변경
-        if (doesTaskTimeConflict(userId, command.getStartTime(), command.getEndTime())) {
+        if (doesTaskTimeConflict(userId, command.getStartTime(),
+                command.getEndTime(), null)) {
             throw new RuntimeException();
         }
         Task task = taskCommander.save(command, userId);
@@ -46,7 +48,8 @@ public class TaskService {
     @Transactional
     public void updateTask(Long taskId, UpdateTaskCommand command, Long userId) {
         // todo Exception 변경
-        if (doesTaskTimeConflict(userId, command.getStartTime(), command.getEndTime())) {
+        if (doesTaskTimeConflict(userId, command.getStartTime(),
+                command.getEndTime(), taskId)) {
             throw new RuntimeException();
         }
         Task task = taskCommander.update(taskId, command, userId);
@@ -98,7 +101,13 @@ public class TaskService {
                 .toList();
     }
 
-    private boolean doesTaskTimeConflict(Long userId, long startTime, long endTime) {
-        return !taskReader.readBetweenUnixTime(userId, startTime, endTime).isEmpty();
+    private boolean doesTaskTimeConflict(Long userId, long startTime, long endTime, @Nullable Long currentTaskId) {
+        List<TaskModel> overlappingTasks = taskReader.readBetweenUnixTime(userId, startTime, endTime);
+
+        if (currentTaskId != null) {
+            overlappingTasks.removeIf(task -> task.getTaskId().equals(currentTaskId));
+        }
+
+        return !overlappingTasks.isEmpty();
     }
 }
