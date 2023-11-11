@@ -56,8 +56,8 @@ public class UserController {
     }
 
     @Operation(summary = "사용자 심각도 수정(저장)")
-    @PatchMapping("/severity")
-    public ApiResponse<String> updateUserSeverity(@RequestParam String severityParam) {
+    @PatchMapping
+    public ApiResponse<String> updateUserSeverity(@RequestParam("severity") String severityParam) {
         String userToken = SecurityContextHolder.getContext().getAuthentication().getName();
         Severity severity;
         try {
