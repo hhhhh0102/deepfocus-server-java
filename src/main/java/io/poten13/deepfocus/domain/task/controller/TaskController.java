@@ -5,11 +5,14 @@ import io.poten13.deepfocus.domain.task.dto.command.CreateTaskCommand;
 import io.poten13.deepfocus.domain.task.dto.command.UpdateTaskCommand;
 import io.poten13.deepfocus.domain.task.service.TaskService;
 import io.poten13.deepfocus.domain.task.support.TaskMapper;
+import io.poten13.deepfocus.domain.user.dto.UserModel;
+import io.poten13.deepfocus.domain.user.service.UserService;
 import io.poten13.deepfocus.global.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,13 +34,18 @@ public class TaskController {
     private final TaskService taskService;
     private final TaskMapper taskMapper;
 
+    private final UserService userService;
+
 
     @GetMapping
     @Operation(summary = "태스크 목록 조회")
     public ApiResponse<List<TaskResponse>> getTaskList(
             @RequestParam("date")
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        List<TaskDto> tasks = taskService.getTaskList(date);
+        String userToken = SecurityContextHolder.getContext().getAuthentication().getName();
+        UserModel user = userService.getByUserToken(userToken);
+
+        List<TaskDto> tasks = taskService.getTaskList(date, user.getUserId());
         List<TaskResponse> response = tasks.stream().map(taskMapper::from).toList();
         return ApiResponse.ok(response);
     }
@@ -46,8 +54,12 @@ public class TaskController {
     @PostMapping
     @Operation(summary = "태스크 생성")
     public ApiResponse<TaskResponse> createTask(@RequestBody CreateTaskRequest request) {
+        String userToken = SecurityContextHolder.getContext().getAuthentication().getName();
+        UserModel user = userService.getByUserToken(userToken);
+
         CreateTaskCommand command = taskMapper.from(request);
-        Long taskId = taskService.createTask(command);
+
+        Long taskId = taskService.createTask(command, user.getUserId());
         TaskDto task = taskService.getTaskById(taskId);
         return ApiResponse.ok(taskMapper.from(task));
     }
@@ -55,8 +67,11 @@ public class TaskController {
     @PutMapping("/{taskId}")
     @Operation(summary = "태스크 수정")
     public ApiResponse<TaskResponse> updateTask(@PathVariable Long taskId, @RequestBody UpdateTaskRequest request) {
+        String userToken = SecurityContextHolder.getContext().getAuthentication().getName();
+        UserModel user = userService.getByUserToken(userToken);
+
         UpdateTaskCommand command = taskMapper.from(request);
-        taskService.updateTask(taskId, command);
+        taskService.updateTask(taskId, command, user.getUserId());
         TaskDto task = taskService.getTaskById(taskId);
         return ApiResponse.ok(taskMapper.from(task));
     }
@@ -64,7 +79,10 @@ public class TaskController {
     @DeleteMapping("/{taskId}")
     @Operation(summary = "태스크 삭제")
     public ApiResponse<String> deleteTask(@PathVariable Long taskId) {
-        taskService.deleteTask(taskId);
+        String userToken = SecurityContextHolder.getContext().getAuthentication().getName();
+        UserModel user = userService.getByUserToken(userToken);
+
+        taskService.deleteTask(taskId, user.getUserId());
         return ApiResponse.success();
     }
 

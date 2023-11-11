@@ -11,18 +11,28 @@ import io.poten13.deepfocus.domain.task.dto.command.CreateSubTaskCommand;
 import io.poten13.deepfocus.domain.task.dto.command.CreateTaskCommand;
 import io.poten13.deepfocus.domain.task.dto.command.UpdateTaskCommand;
 import io.poten13.deepfocus.domain.task.dto.model.SubTaskModel;
+import io.poten13.deepfocus.global.util.TimeUtils;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 
 @Mapper(componentModel = "spring",
         injectionStrategy = InjectionStrategy.CONSTRUCTOR,
-        unmappedTargetPolicy = ReportingPolicy.ERROR)
+        unmappedTargetPolicy = ReportingPolicy.ERROR,
+        imports = {TimeUtils.class})
 public interface TaskMapper {
+
+    @Mapping(target = "endTime", expression = "java(TimeUtils.addMinutesToUnixTimeStamp(request.getStartTime(), request.getSpanMinute()))")
+    @Mapping(target = "startDate", expression = "java(TimeUtils.convertLocalDateFrom(request.getStartTime()))")
+    @Mapping(target = "endDate", expression = "java(TimeUtils.convertLocalDateFrom(TimeUtils.addMinutesToUnixTimeStamp(request.getStartTime(), request.getSpanMinute())))")
     CreateTaskCommand from(CreateTaskRequest request);
 
     CreateSubTaskCommand from(CreateSubTaskRequest request);
 
+    @Mapping(target = "endTime", expression = "java(TimeUtils.addMinutesToUnixTimeStamp(request.getStartTime(), request.getSpanMinute()))")
+    @Mapping(target = "startDate", expression = "java(TimeUtils.convertLocalDateFrom(request.getStartTime()))")
+    @Mapping(target = "endDate", expression = "java(TimeUtils.convertLocalDateFrom(TimeUtils.addMinutesToUnixTimeStamp(request.getStartTime(), request.getSpanMinute())))")
     UpdateTaskCommand from(UpdateTaskRequest request);
 
     // 서브 태스크 수정 요청 -> 서브 태스크 생성

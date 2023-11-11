@@ -32,6 +32,11 @@ public class UserService {
                 .map(UserModel::from);
     }
 
+    public UserModel getByUserToken(String userToken) {
+        return findByUserToken(userToken)
+                .orElseThrow(RuntimeException::new);
+    }
+
     public UserModel save(String deviceToken) {
         String nickname = nicknameGeneratorClient.generateNickname(
                 NICKNAME_RESPONSE_FORMAT,
