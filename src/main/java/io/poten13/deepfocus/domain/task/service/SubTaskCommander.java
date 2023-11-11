@@ -5,6 +5,7 @@ import io.poten13.deepfocus.domain.task.entity.SubTask;
 import io.poten13.deepfocus.domain.task.entity.Task;
 import io.poten13.deepfocus.domain.task.repository.SubTaskRepository;
 import io.poten13.deepfocus.domain.task.repository.TaskRepository;
+import io.poten13.deepfocus.domain.task.support.exception.TaskNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +42,6 @@ public class SubTaskCommander {
 
     private Task getById(Long taskId) {
         return taskRepository.findById(taskId)
-                .orElseThrow(RuntimeException::new);
+                .orElseThrow(TaskNotFoundException::new);
     }
 }

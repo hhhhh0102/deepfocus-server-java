@@ -5,8 +5,11 @@ import io.poten13.deepfocus.domain.user.controller.dto.LoginResponse;
 import io.poten13.deepfocus.domain.user.controller.dto.UserResponse;
 import io.poten13.deepfocus.domain.user.dto.UserModel;
 import io.poten13.deepfocus.domain.user.service.UserService;
+import io.poten13.deepfocus.domain.user.support.exception.UserNotFoundException;
+import io.poten13.deepfocus.global.constants.CommonErrorCode;
 import io.poten13.deepfocus.global.constants.Severity;
 import io.poten13.deepfocus.global.dto.ApiResponse;
+import io.poten13.deepfocus.global.exception.BusinessException;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -51,7 +54,7 @@ public class UserController {
     public ApiResponse<UserResponse> getUser() {
         String userToken = SecurityContextHolder.getContext().getAuthentication().getName();
         UserModel user = userService.findByUserToken(userToken)
-                .orElseThrow(RuntimeException::new);
+                .orElseThrow(UserNotFoundException::new);
         return ApiResponse.ok(UserResponse.from(user));
     }
 
@@ -63,7 +66,7 @@ public class UserController {
         try {
             severity = Severity.valueOf(severityParam.toUpperCase());
         } catch (IllegalArgumentException ex) {
-            throw new RuntimeException("Invalid severity: " + severityParam);
+            throw new BusinessException(CommonErrorCode.INVALID_INPUT_VALUE);
         }
         userService.updateUserSeverity(userToken, severity);
         return ApiResponse.success();
