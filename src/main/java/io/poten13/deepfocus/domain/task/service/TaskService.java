@@ -33,16 +33,23 @@ public class TaskService {
     private final OpenAIClient openAIClient;
 
     @Transactional
-    public Long createTask(CreateTaskCommand command) {
-        // todo 중복 시간 태스크 있으면 안됨
-        Task task = taskCommander.save(command);
+    public Long createTask(CreateTaskCommand command, Long userId) {
+        // todo Exception 변경
+        if (doesTaskTimeConflict(userId, command.getStartTime(), command.getEndTime())) {
+            throw new RuntimeException();
+        }
+        Task task = taskCommander.save(command, userId);
         subTaskCommander.saveAll(task, command.getSubTasks());
         return task.getTaskId();
     }
 
     @Transactional
-    public void updateTask(Long taskId, UpdateTaskCommand command) {
-        Task task = taskCommander.update(taskId, command);
+    public void updateTask(Long taskId, UpdateTaskCommand command, Long userId) {
+        // todo Exception 변경
+        if (doesTaskTimeConflict(userId, command.getStartTime(), command.getEndTime())) {
+            throw new RuntimeException();
+        }
+        Task task = taskCommander.update(taskId, command, userId);
         subTaskCommander.deleteAll(task);
         subTaskCommander.saveAll(task, command.getSubTasks());
     }
@@ -56,8 +63,8 @@ public class TaskService {
         return new TaskDto(task, subTasks);
     }
 
-    public List<TaskDto> getTaskList(LocalDate date) {
-        List<TaskModel> tasks = taskReader.readBetweenStartAndEndDate(date);
+    public List<TaskDto> getTaskList(LocalDate date, Long userId) {
+        List<TaskModel> tasks = taskReader.readBetweenStartAndEndDate(date, userId);
         List<SubTaskModel> subTasks = subTaskReader.readByTaskIds(tasks.stream()
                 .map(TaskModel::getTaskId)
                 .toList());
@@ -71,7 +78,12 @@ public class TaskService {
     }
 
     @Transactional
-    public void deleteTask(Long taskId) {
+    public void deleteTask(Long taskId, Long userId) {
+        TaskModel task = taskReader.readById(taskId)
+                .orElseThrow(RuntimeException::new);
+        if (task.getUserId().equals(userId)) {
+            throw new RuntimeException();
+        }
         subTaskCommander.deleteAllByTaskId(taskId);
         taskCommander.deleteByTaskId(taskId);
     }
@@ -84,5 +96,9 @@ public class TaskService {
                 .map(String::trim)
                 .map(s -> s.trim().replaceAll("^\"|\"$", "").replaceAll("\\\\.", ""))
                 .toList();
+    }
+
+    private boolean doesTaskTimeConflict(Long userId, long startTime, long endTime) {
+        return !taskReader.readBetweenUnixTime(userId, startTime, endTime).isEmpty();
     }
 }

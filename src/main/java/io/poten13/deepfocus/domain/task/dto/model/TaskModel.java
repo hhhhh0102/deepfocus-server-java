@@ -18,11 +18,12 @@ public class TaskModel {
     private final long spanMinute;
     private final LocalDate startDate;
     private final LocalDate endDate;
+    private final Long userId;
 
 
     @QueryProjection
     public TaskModel(Long taskId, String title, long startTime, long endTime, long spanMinute,
-                     LocalDate startDate, LocalDate endDate) {
+                     LocalDate startDate, LocalDate endDate, Long userId) {
         this.taskId = taskId;
         this.title = title;
         this.startTime = startTime;
@@ -30,6 +31,7 @@ public class TaskModel {
         this.spanMinute = spanMinute;
         this.startDate = startDate;
         this.endDate = endDate;
+        this.userId = userId;
     }
 
     public static TaskModel from(Task task) {
@@ -41,6 +43,7 @@ public class TaskModel {
                 .spanMinute(task.getSpanMinute())
                 .startDate(task.getStartDate())
                 .endDate(task.getEndDate())
+                .userId(task.getUser().getUserId())
                 .build();
     }
 }

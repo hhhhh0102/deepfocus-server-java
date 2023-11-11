@@ -1,7 +1,6 @@
 package io.poten13.deepfocus.domain.task.service;
 
 import io.poten13.deepfocus.domain.task.dto.model.TaskModel;
-import io.poten13.deepfocus.domain.task.entity.Task;
 import io.poten13.deepfocus.domain.task.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,7 +21,11 @@ public class TaskReader {
                 .or(Optional::empty);
     }
 
-    public List<TaskModel> readBetweenStartAndEndDate(LocalDate date) {
-        return taskRepository.findTaskMoelList(date);
+    public List<TaskModel> readBetweenStartAndEndDate(LocalDate date, Long userId) {
+        return taskRepository.findTaskModelList(date, userId);
+    }
+
+    public List<TaskModel> readBetweenUnixTime(Long userId, long startTime, long endTime) {
+        return taskRepository.findByUserIdAndBetweenUnisTimeStamp(userId, startTime, endTime);
     }
 }
