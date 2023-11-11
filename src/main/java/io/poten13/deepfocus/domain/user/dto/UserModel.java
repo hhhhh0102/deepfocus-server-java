@@ -11,14 +11,14 @@ import lombok.Getter;
 @Getter
 @Builder(access = AccessLevel.PRIVATE)
 public class UserModel {
-    private final Long userId;
+    private final String userId;
     private final String userToken;
     private final String nickname;
     private final RoleType roleType;
     private final Severity severity;
 
     @QueryProjection
-    public UserModel(Long userId, String userToken, String nickname, RoleType roleType, Severity severity) {
+    public UserModel(String userId, String userToken, String nickname, RoleType roleType, Severity severity) {
         this.userId = userId;
         this.userToken = userToken;
         this.nickname = nickname;

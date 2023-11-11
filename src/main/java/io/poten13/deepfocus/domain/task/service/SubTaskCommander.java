@@ -4,6 +4,7 @@ import io.poten13.deepfocus.domain.task.dto.command.CreateSubTaskCommand;
 import io.poten13.deepfocus.domain.task.entity.SubTask;
 import io.poten13.deepfocus.domain.task.entity.Task;
 import io.poten13.deepfocus.domain.task.repository.SubTaskRepository;
+import io.poten13.deepfocus.domain.task.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,10 +14,12 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class SubTaskCommander {
+    private final TaskRepository taskRepository;
     private final SubTaskRepository subTaskRepository;
 
     @Transactional
-    public void saveAll(Task task, List<CreateSubTaskCommand> commandList) {
+    public void saveAll(Long taskId, List<CreateSubTaskCommand> commandList) {
+        Task task = getById(taskId);
         List<SubTask> subTasks = commandList.stream()
                 .map(command -> SubTask.from(task, command))
                 .toList();
@@ -24,7 +27,8 @@ public class SubTaskCommander {
     }
 
     @Transactional
-    public void deleteAll(Task task) {
+    public void deleteAll(Long taskId) {
+        Task task = getById(taskId);
         List<SubTask> subTask = subTaskRepository.getAllByTaskId(task.getTaskId());
         subTaskRepository.deleteAll(subTask);
     }
@@ -33,5 +37,10 @@ public class SubTaskCommander {
     public void deleteAllByTaskId(Long taskId) {
         List<SubTask> subTaskList = subTaskRepository.getAllByTaskId(taskId);
         subTaskRepository.deleteAll(subTaskList);
+    }
+
+    private Task getById(Long taskId) {
+        return taskRepository.findById(taskId)
+                .orElseThrow(RuntimeException::new);
     }
 }
