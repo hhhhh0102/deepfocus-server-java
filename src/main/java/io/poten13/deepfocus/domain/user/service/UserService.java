@@ -5,6 +5,7 @@ import io.poten13.deepfocus.domain.user.dto.CreateDeviceCommand;
 import io.poten13.deepfocus.domain.user.dto.CreateUserCommand;
 import io.poten13.deepfocus.domain.user.dto.UserModel;
 import io.poten13.deepfocus.domain.user.entity.User;
+import io.poten13.deepfocus.domain.user.support.exception.UserNotFoundException;
 import io.poten13.deepfocus.global.constants.Severity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,7 +35,7 @@ public class UserService {
 
     public UserModel getByUserToken(String userToken) {
         return findByUserToken(userToken)
-                .orElseThrow(RuntimeException::new);
+                .orElseThrow(UserNotFoundException::new);
     }
 
     public UserModel save(String deviceToken) {

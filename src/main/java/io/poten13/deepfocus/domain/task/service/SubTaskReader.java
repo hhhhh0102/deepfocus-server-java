@@ -4,6 +4,7 @@ import io.poten13.deepfocus.domain.task.dto.model.SubTaskModel;
 import io.poten13.deepfocus.domain.task.entity.Task;
 import io.poten13.deepfocus.domain.task.repository.SubTaskRepository;
 import io.poten13.deepfocus.domain.task.repository.TaskRepository;
+import io.poten13.deepfocus.domain.task.support.exception.TaskNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +18,7 @@ public class SubTaskReader {
     private final SubTaskRepository subTaskRepository;
 
     public List<SubTaskModel> readAll(Long taskId) {
-        Task task = taskRepository.findById(taskId).orElseThrow(RuntimeException::new);
+        Task task = taskRepository.findById(taskId).orElseThrow(TaskNotFoundException::new);
         return subTaskRepository.findAllByTask(task).stream()
                 .map(SubTaskModel::from)
                 .toList();

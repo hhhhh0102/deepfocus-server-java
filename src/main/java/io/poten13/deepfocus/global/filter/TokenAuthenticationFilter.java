@@ -2,6 +2,7 @@ package io.poten13.deepfocus.global.filter;
 
 import io.poten13.deepfocus.domain.user.dto.UserModel;
 import io.poten13.deepfocus.domain.user.service.UserService;
+import io.poten13.deepfocus.domain.user.support.exception.UserNotFoundException;
 import io.poten13.deepfocus.global.constants.Constants;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -26,13 +27,17 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String userToken = request.getHeader(Constants.USER_TOKEN_HEADER_KEY);
         if (StringUtils.isNotBlank(userToken)) {
-            UserModel user = userService.findByUserToken(userToken)
-                    .orElseThrow(RuntimeException::new);
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUserToken(), "", user.getRoleType().getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-            filterChain.doFilter(request, response);
+            try {
+                UserModel user = userService.findByUserToken(userToken)
+                        .orElseThrow(UserNotFoundException::new);
+                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUserToken(), "", user.getRoleType().getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                filterChain.doFilter(request, response);
+            } catch (UserNotFoundException ex) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, ex.getMessage());
+            }
         } else {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "인증 토큰이 누락되었습니다.");
         }
     }
 
