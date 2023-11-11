@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,9 +25,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import java.time.LocalDate;
 import java.util.List;
 
+@Validated
 @Tag(name = "Task", description = "태스크 관리 API")
 @RestController
 @RequestMapping("/api/v1/tasks")
@@ -89,7 +93,8 @@ public class TaskController {
     @GetMapping("/recommendations")
     @Operation(summary = "서브 태스크 추천")
     public ApiResponse<List<SubTaskRecommendResponse>> recommendSubTasks(
-            @RequestParam("limit") int limit, @RequestParam("task") String taskTitle) {
+            @RequestParam("limit") @Min(1) @Max(3) int limit,
+            @RequestParam("task") String taskTitle) {
         List<String> subTaskTitleList = taskService.recommendSubTaskTitleList(limit, taskTitle);
         return ApiResponse.ok(subTaskTitleList.stream()
                 .map(SubTaskRecommendResponse::new)
@@ -99,7 +104,8 @@ public class TaskController {
     @GetMapping("/statistics")
     @Operation(summary = "태스크 통계 조회")
     public ApiResponse<TaskStatsResponse> getTaskStats(
-            @RequestParam("year") int year, @RequestParam("month") int month) {
+            @RequestParam("year") @Min(1900) @Max(2038) int year,
+            @RequestParam("month") @Min(1) @Max(12) int month) {
         String userToken = SecurityContextHolder.getContext().getAuthentication().getName();
         UserModel user = userService.getByUserToken(userToken);
         TaskStatsDto stats = taskService.getUserMonthlyTaskStats(user.getUserId(), year, month);

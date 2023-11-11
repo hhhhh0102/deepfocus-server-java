@@ -13,11 +13,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.ConstraintViolationException;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 
@@ -36,6 +38,18 @@ public class GlobalExceptionHandler {
     protected void handleAccessDeniedException(AccessDeniedException ex, HttpServletRequest request,
                                                HttpServletResponse response) throws IOException {
         response.sendError(HttpServletResponse.SC_FORBIDDEN);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+        ErrorResponse response = ErrorResponse.of(CommonErrorCode.INVALID_INPUT_VALUE);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException ex) {
+        ErrorResponse response = ErrorResponse.of(CommonErrorCode.INVALID_INPUT_VALUE);
+        return ResponseEntity.status(response.getStatus()).body(response);
     }
 
     @ExceptionHandler(BusinessException.class)
