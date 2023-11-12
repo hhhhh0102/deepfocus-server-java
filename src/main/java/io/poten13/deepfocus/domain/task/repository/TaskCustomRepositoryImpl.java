@@ -7,6 +7,7 @@ import io.poten13.deepfocus.domain.task.dto.model.QTaskModel;
 import io.poten13.deepfocus.domain.task.dto.model.TaskModel;
 import io.poten13.deepfocus.domain.task.entity.QTask;
 import io.poten13.deepfocus.domain.user.entity.QUser;
+import io.poten13.deepfocus.global.util.TimeUtils;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
@@ -53,7 +54,8 @@ public class TaskCustomRepositoryImpl implements TaskCustomRepository {
                 .join(task.user, user)
                 .where(user.userId.eq(userId),
                         task.startDate.year().eq(year),
-                        task.startDate.month().eq(month))
+                        task.startDate.month().eq(month),
+                        isAlreadyEnded())
                 .groupBy(task.title)
                 .orderBy(task.spanMinute.sum().desc())
                 .limit(1)
@@ -68,7 +70,8 @@ public class TaskCustomRepositoryImpl implements TaskCustomRepository {
                 .join(task.user, user)
                 .where(user.userId.eq(userId),
                         task.startDate.year().eq(year),
-                        task.startDate.month().eq(month))
+                        task.startDate.month().eq(month),
+                        isAlreadyEnded())
                 .fetchOne();
     }
 
@@ -80,7 +83,8 @@ public class TaskCustomRepositoryImpl implements TaskCustomRepository {
                 .join(task.user, user)
                 .where(user.userId.eq(userId),
                         task.startDate.year().eq(year),
-                        task.startDate.month().eq(month))
+                        task.startDate.month().eq(month),
+                        isAlreadyEnded())
                 .fetchOne();
     }
 
@@ -94,7 +98,8 @@ public class TaskCustomRepositoryImpl implements TaskCustomRepository {
                         .join(task.user, user)
                         .where(user.userId.eq(userId),
                                 task.startDate.year().eq(year),
-                                task.startDate.month().eq(month))
+                                task.startDate.month().eq(month),
+                                isAlreadyEnded())
                         .fetch());
         performedDates.addAll(
                 queryFactory
@@ -103,13 +108,18 @@ public class TaskCustomRepositoryImpl implements TaskCustomRepository {
                         .join(task.user, user)
                         .where(task.user.userId.eq(userId),
                                 task.endDate.year().eq(year),
-                                task.endDate.month().eq(month))
+                                task.endDate.month().eq(month),
+                                isAlreadyEnded())
                         .fetch());
 
         return performedDates.stream()
                 .distinct()
                 .sorted()
                 .toList();
+    }
+
+    private BooleanExpression isAlreadyEnded() {
+        return task.endTime.loe(TimeUtils.getCurrentUnixTimeStamp());
     }
 
     private BooleanExpression betweenUnixTimeStamp(long startTime, long endTime) {

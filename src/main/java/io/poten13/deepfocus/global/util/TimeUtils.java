@@ -15,6 +15,10 @@ public class TimeUtils {
         return Instant.ofEpochSecond(unixTimestamp).atZone(getSeoulZoneId()).toLocalDate();
     }
 
+    public static long getCurrentUnixTimeStamp() {
+        return System.currentTimeMillis() / 1000L;
+    }
+
     public static long addMinutesToUnixTimeStamp(long timestamp, long minutes) {
         return Instant.ofEpochSecond(timestamp)
                 .plus(Duration.ofMinutes(minutes))
