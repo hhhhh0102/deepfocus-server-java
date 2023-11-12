@@ -93,7 +93,7 @@ public class TaskController {
     @GetMapping("/recommendations")
     @Operation(summary = "서브 태스크 추천")
     public ApiResponse<List<SubTaskRecommendResponse>> recommendSubTasks(
-            @RequestParam("limit") @Min(1) @Max(3) int limit,
+            @RequestParam("limit") @Min(1) @Max(5) int limit,
             @RequestParam("task") String taskTitle) {
         List<String> subTaskTitleList = taskService.recommendSubTaskTitleList(limit, taskTitle);
         return ApiResponse.ok(subTaskTitleList.stream()
