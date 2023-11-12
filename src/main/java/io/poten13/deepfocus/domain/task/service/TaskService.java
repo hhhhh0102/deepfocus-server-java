@@ -12,22 +12,18 @@ import io.poten13.deepfocus.domain.task.dto.command.CreateTaskCommand;
 import io.poten13.deepfocus.domain.task.dto.command.UpdateTaskCommand;
 import io.poten13.deepfocus.domain.task.dto.model.SubTaskModel;
 import io.poten13.deepfocus.domain.task.dto.model.TaskModel;
-import io.poten13.deepfocus.domain.task.entity.TaskStats;
 import io.poten13.deepfocus.domain.task.support.exception.TaskNotFoundException;
 import io.poten13.deepfocus.domain.task.support.exception.TaskTimeConflictException;
 import io.poten13.deepfocus.domain.task.support.exception.UnAuthorizedTaskAccessException;
-import io.poten13.deepfocus.global.constants.Constants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -50,7 +46,9 @@ public class TaskService {
             throw new TaskTimeConflictException();
         }
         TaskModel task = taskCommander.save(command, userId);
-        subTaskCommander.saveAll(task.getTaskId(), command.getSubTasks());
+        if (!command.getSubTasks().isEmpty()) {
+            subTaskCommander.saveAll(task.getTaskId(), command.getSubTasks());
+        }
         renewTaskStats(task);
         return task.getTaskId();
     }
@@ -64,8 +62,10 @@ public class TaskService {
             throw new TaskTimeConflictException();
         }
         taskCommander.update(task.getTaskId(), command, userId);
-        subTaskCommander.deleteAll(task.getTaskId());
-        subTaskCommander.saveAll(task.getTaskId(), command.getSubTasks());
+        if (!command.getSubTasks().isEmpty()) {
+            subTaskCommander.deleteAll(task.getTaskId());
+            subTaskCommander.saveAll(task.getTaskId(), command.getSubTasks());
+        }
         renewTaskStats(task);
     }
 
@@ -114,13 +114,14 @@ public class TaskService {
     }
 
     public TaskStatsDto getUserMonthlyTaskStats(String userId, int year, int month) {
-        String key = MessageFormat.format(Constants.TASK_STATS_KEY_PATTERN,
-                userId, year, month);
-        Optional<TaskStats> taskStats = taskStatsReader.readBy(key);
-        if (taskStats.isPresent()) {
-            return TaskStatsDto.exists(taskStats.get());
-        }
-        return TaskStatsDto.empty(userId, year, month);
+//        String key = MessageFormat.format(Constants.TASK_STATS_KEY_PATTERN,
+//                userId, year, month);
+//        Optional<TaskStats> taskStats = taskStatsReader.readBy(key);
+//        if (taskStats.isPresent()) {
+//            return TaskStatsDto.exists(taskStats.get());
+//        }
+//        return TaskStatsDto.empty(userId, year, month);
+        return taskReader.getCurrentTaskStats(userId, year, month);
     }
 
     @Transactional
