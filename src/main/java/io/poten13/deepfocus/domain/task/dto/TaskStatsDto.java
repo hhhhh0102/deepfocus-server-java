@@ -22,6 +22,9 @@ public class TaskStatsDto {
     private final List<LocalDate> performedDates;
 
     public static TaskStatsDto exists(TaskStats task) {
+        if (task.getTotalCount() == null || task.getTotalCount().equals(0L)) {
+            return TaskStatsDto.empty(task.getUserId(), task.getYear(), task.getMonth());
+        }
         return TaskStatsDto.builder()
                 .year(task.getYear())
                 .month(task.getMonth())
