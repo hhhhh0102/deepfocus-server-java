@@ -23,7 +23,7 @@ public class AuthController {
 
     @Operation(summary = "로그인", description = "사용자의 소셜 정보를 사용하여 로그인합니다")
     @PostMapping("/login")
-    public ApiResponse<LoginResponse> deviceLogin(@RequestBody LoginRequest request) {
+    public ApiResponse<LoginResponse> lgin(@RequestBody LoginRequest request) {
         UserAuthInfo userAuthInfo = authFacade.getUserAuthInfo(request.getLoginType(), request.getCredentials());
         return ApiResponse.ok(LoginResponse.from(userAuthInfo));
     }

@@ -12,7 +12,6 @@ import io.poten13.deepfocus.domain.user.support.exception.UserNotFoundException;
 import io.poten13.deepfocus.global.constants.Constants;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -64,9 +63,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return (StringUtils.equals("/api/v1/users/deviceLogin", request.getServletPath())
-                && StringUtils.equals(HttpMethod.POST.name(), request.getMethod())) ||
-                StringUtils.startsWith(request.getServletPath(), "/swagger-ui") ||
+        return StringUtils.startsWith(request.getServletPath(), "/swagger-ui") ||
                 StringUtils.startsWith(request.getServletPath(), "/v3/api-docs/swagger-config") ||
                 StringUtils.equals(request.getServletPath(), "/v3/api-docs") ||
                 StringUtils.equals("/api/v1/auth/login", request.getServletPath()) ||
