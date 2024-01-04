@@ -21,4 +21,8 @@ public class UserReader {
     public Optional<User> readByUserToken(String userToken) {
         return userRepository.findByUserToken(userToken);
     }
+
+    public Optional<UserModel> readBySocialProviderUserId(String providerUserId) {
+        return userRepository.findUserModelBySocialProviderUserId(providerUserId);
+    }
 }

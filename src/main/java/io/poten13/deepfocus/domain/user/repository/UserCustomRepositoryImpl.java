@@ -5,6 +5,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import io.poten13.deepfocus.domain.user.dto.QUserModel;
 import io.poten13.deepfocus.domain.user.dto.UserModel;
 import io.poten13.deepfocus.domain.user.entity.QDevice;
+import io.poten13.deepfocus.domain.user.entity.QSocial;
 import io.poten13.deepfocus.domain.user.entity.QUser;
 import lombok.RequiredArgsConstructor;
 
@@ -17,6 +18,7 @@ public class UserCustomRepositoryImpl implements UserCustomRepository {
 
     private static final QUser user = QUser.user;
     private static final QDevice device = QDevice.device;
+    private static final QSocial social = QSocial.social;
 
     @Override
     public Optional<UserModel> findUserModelByDeviceToken(String deviceToken) {
@@ -25,6 +27,17 @@ public class UserCustomRepositoryImpl implements UserCustomRepository {
                         .from(device)
                         .join(device.user, user)
                         .where(device.deviceToken.eq(deviceToken))
+                        .fetchOne()
+        );
+    }
+
+    @Override
+    public Optional<UserModel> findUserModelBySocialProviderUserId(String providerId) {
+        return Optional.ofNullable(
+                queryFactory.select(getUserModelProjection())
+                        .from(social)
+                        .join(social.user, user)
+                        .where(social.providerUserId.eq(providerId))
                         .fetchOne()
         );
     }
