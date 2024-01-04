@@ -62,6 +62,9 @@ dependencies {
     /* QueryDSL */
     implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
     implementation "com.querydsl:querydsl-apt:${queryDslVersion}"
+
+    /* JWT */
+    implementation 'com.auth0:java-jwt:4.4.0'
 }
 
 compileJava.options.encoding = 'UTF-8'

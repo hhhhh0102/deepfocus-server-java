@@ -1,5 +1,6 @@
 package io.poten13.deepfocus.global.config;
 
+import com.auth0.jwt.JWTVerifier;
 import io.poten13.deepfocus.domain.user.service.UserService;
 import io.poten13.deepfocus.global.constants.Constants;
 import io.poten13.deepfocus.global.filter.TokenAuthenticationFilter;
@@ -19,6 +20,7 @@ import org.springframework.web.cors.CorsUtils;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final JWTVerifier verifier;
     private final UserService userService;
 
     @Bean
@@ -27,14 +29,15 @@ public class SecurityConfig {
                     request.requestMatchers(CorsUtils::isPreFlightRequest).permitAll();
                     request.antMatchers("/actuator/**").permitAll()
                             .antMatchers(Constants.SWAGGER_URL_LIST).permitAll()
-                            .antMatchers(HttpMethod.POST, "/api/v1/users/login").permitAll();
+                            .antMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
+                            .antMatchers(HttpMethod.POST, "/api/v1/auth/token/reissue").permitAll();
                     request.anyRequest().authenticated();
                 })
                 .cors().and()
                 .csrf().disable()
                 .formLogin().disable()
                 .httpBasic().disable()
-                .addFilterBefore(new TokenAuthenticationFilter(userService), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new TokenAuthenticationFilter(verifier, userService), UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         return http.build();
     }

@@ -6,4 +6,6 @@ import java.util.Optional;
 
 public interface UserCustomRepository {
     Optional<UserModel> findUserModelByDeviceToken(String deviceToken);
+
+    Optional<UserModel> findUserModelBySocialProviderUserId(String providerId);
 }

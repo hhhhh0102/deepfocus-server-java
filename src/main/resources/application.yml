@@ -17,3 +17,9 @@ spring:
 app:
   open-ai:
     api-key: ${DFC_OPEN_AI_KEY}
+  jwt:
+    tokenIssuer: ${DFC_TOKEN_ISSUER}
+    secret: ${DFC_TOKEN_SECRET}
+    tokenExpiry: ${DFC_TOKEN_EXPIRY}
+    refreshTokenExpiry: ${DFC_REFRESH_TOKEN_EXPIRY}
+    passwordStrength: ${DFC_PASSWORD_STRENGTH}

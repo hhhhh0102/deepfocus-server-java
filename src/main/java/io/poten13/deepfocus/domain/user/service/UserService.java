@@ -1,7 +1,9 @@
 package io.poten13.deepfocus.domain.user.service;
 
+import io.poten13.deepfocus.auth.oauth.dto.OAuthAttributes;
 import io.poten13.deepfocus.domain.user.client.NicknameGeneratorClient;
 import io.poten13.deepfocus.domain.user.dto.CreateDeviceCommand;
+import io.poten13.deepfocus.domain.user.dto.CreateSocialCommand;
 import io.poten13.deepfocus.domain.user.dto.CreateUserCommand;
 import io.poten13.deepfocus.domain.user.dto.UserModel;
 import io.poten13.deepfocus.domain.user.entity.User;
@@ -21,11 +23,17 @@ import static io.poten13.deepfocus.global.constants.Constants.*;
 public class UserService {
     private final UserCommander userCommander;
     private final DeviceCommander deviceCommander;
+    private final SocialCommander socialCommander;
+
     private final UserReader userReader;
     private final NicknameGeneratorClient nicknameGeneratorClient;
     
     public Optional<UserModel> findByDeviceToken(String deviceToken) {
         return userReader.readByDeviceToken(deviceToken);
+    }
+
+    public Optional<UserModel> findBySocialProviderUserId(String providerId) {
+        return userReader.readBySocialProviderUserId(providerId);
     }
 
     public Optional<UserModel> findByUserToken(String userToken) {
@@ -39,6 +47,31 @@ public class UserService {
     }
 
     public UserModel save(String deviceToken) {
+        User user = createUser();
+
+        CreateDeviceCommand deviceCommand = CreateDeviceCommand.builder()
+                .deviceToken(deviceToken)
+                .user(user)
+                .build();
+
+        deviceCommander.save(deviceCommand);
+        return UserModel.from(user);
+    }
+
+    @Transactional
+    public UserModel save(OAuthAttributes oAuthAttributes) {
+        User user = createUser();
+
+        CreateSocialCommand command = CreateSocialCommand.builder()
+                .providerType(oAuthAttributes.getProvider())
+                .providerUserId(oAuthAttributes.getProviderGivenId())
+                .user(user)
+                .build();
+        socialCommander.save(command);
+        return UserModel.from(user);
+    }
+
+    private User createUser() {
         String nickname = nicknameGeneratorClient.generateNickname(
                 NICKNAME_RESPONSE_FORMAT,
                 REQUIRED_NICKNAME_COUNT,
@@ -49,15 +82,7 @@ public class UserService {
                 .nickname(nickname)
                 .userToken(UUID.randomUUID().toString())
                 .build();
-        User user = userCommander.save(command);
-
-        CreateDeviceCommand deviceCommand = CreateDeviceCommand.builder()
-                .deviceToken(deviceToken)
-                .user(user)
-                .build();
-
-        deviceCommander.save(deviceCommand);
-        return UserModel.from(user);
+        return userCommander.save(command);
     }
 
     @Transactional
