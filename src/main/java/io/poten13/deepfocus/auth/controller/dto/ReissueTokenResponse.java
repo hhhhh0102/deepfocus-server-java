@@ -19,8 +19,8 @@ public class ReissueTokenResponse {
         return ReissueTokenResponse.builder()
             .accessToken(authToken.getAccessToken())
             .refreshToken(authToken.getRefreshToken())
-            .accessTokenExpiredAt(JwtUtils.getExpirationDate(authToken.getAccessToken()))
-            .refreshTokenExpiredAt(JwtUtils.getExpirationDate(authToken.getRefreshToken()))
+            .accessTokenExpiredAt(JwtUtils.getExpirationSecond(authToken.getAccessToken()))
+            .refreshTokenExpiredAt(JwtUtils.getExpirationSecond(authToken.getRefreshToken()))
             .build();
     }
 }
