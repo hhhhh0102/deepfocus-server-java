@@ -11,6 +11,7 @@ import io.poten13.deepfocus.global.exception.BusinessException;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,6 +45,14 @@ public class UserController {
             throw new BusinessException(CommonErrorCode.INVALID_INPUT_VALUE);
         }
         userService.updateUserSeverity(userToken, severity);
+        return ApiResponse.success();
+    }
+
+    @Operation(summary = "회원 탈퇴")
+    @DeleteMapping
+    public ApiResponse<String> deleteUser() {
+        String userToken = SecurityContextHolder.getContext().getAuthentication().getName();
+        userService.deleteUser(userToken);
         return ApiResponse.success();
     }
 }

@@ -1,11 +1,13 @@
 package io.poten13.deepfocus.domain.user.service;
 
 import io.poten13.deepfocus.domain.user.dto.CreateUserCommand;
+import io.poten13.deepfocus.domain.user.dto.DeleteUserCommand;
 import io.poten13.deepfocus.domain.user.entity.User;
 import io.poten13.deepfocus.domain.user.repository.UserRepository;
 import io.poten13.deepfocus.domain.user.support.exception.UserNotFoundException;
 import io.poten13.deepfocus.global.constants.Severity;
 import lombok.RequiredArgsConstructor;
+import org.mapstruct.control.MappingControl.Use;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,5 +28,12 @@ public class UserCommander {
         User user = userRepository.findByUserToken(userToken)
                 .orElseThrow(UserNotFoundException::new);
         user.updateSeverity(severity);
+    }
+
+    @Transactional
+    public void delete(DeleteUserCommand command) {
+        User user = userRepository.findById(command.getUserId())
+            .orElseThrow(UserNotFoundException::new);
+        user.deleteUser();
     }
 }
