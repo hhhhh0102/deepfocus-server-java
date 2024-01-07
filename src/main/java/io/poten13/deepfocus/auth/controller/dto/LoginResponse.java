@@ -23,8 +23,8 @@ public class LoginResponse {
             .isNew(userAuthInfo.isNew())
             .accessToken(userAuthInfo.getAccessToken())
             .refreshToken(userAuthInfo.getRefreshToken())
-            .accessTokenExpiredAt(JwtUtils.getExpirationDate(userAuthInfo.getAccessToken()))
-            .refreshTokenExpiredAt(JwtUtils.getExpirationDate(userAuthInfo.getRefreshToken()))
+            .accessTokenExpiredAt(JwtUtils.getExpirationSecond(userAuthInfo.getAccessToken()))
+            .refreshTokenExpiredAt(JwtUtils.getExpirationSecond(userAuthInfo.getRefreshToken()))
             .build();
     }
 }
