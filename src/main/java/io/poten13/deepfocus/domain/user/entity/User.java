@@ -4,6 +4,7 @@ import io.poten13.deepfocus.domain.common.BaseTimeEntity;
 import io.poten13.deepfocus.domain.user.dto.CreateUserCommand;
 import io.poten13.deepfocus.global.constants.RoleType;
 import io.poten13.deepfocus.global.constants.Severity;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,10 +29,15 @@ public class User extends BaseTimeEntity {
 
     private String nickname;
 
+    @Enumerated(EnumType.STRING)
     private RoleType roleType;
 
     @Enumerated(EnumType.STRING)
     private Severity severity;
+
+    private Boolean isDeleted;
+
+    private LocalDateTime deletedAt;
 
     public static User from(CreateUserCommand command) {
         User user = new User();
@@ -44,5 +50,15 @@ public class User extends BaseTimeEntity {
 
     public void updateSeverity(Severity severity) {
         this.severity = severity;
+    }
+
+    public void deleteUser() {
+        LocalDateTime now = LocalDateTime.now();
+        this.isDeleted = true;
+        this.deletedAt = now;
+        this.userToken = null;
+        this.nickname = null;
+        this.roleType = null;
+        this.severity = null;
     }
 }

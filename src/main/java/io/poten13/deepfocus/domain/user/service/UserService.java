@@ -1,22 +1,27 @@
 package io.poten13.deepfocus.domain.user.service;
 
+import static io.poten13.deepfocus.global.constants.Constants.MAX_NICKNAME_LENGTH;
+import static io.poten13.deepfocus.global.constants.Constants.NICKNAME_RESPONSE_FORMAT;
+import static io.poten13.deepfocus.global.constants.Constants.REQUIRED_NICKNAME_COUNT;
+
 import io.poten13.deepfocus.auth.oauth.dto.OAuthAttributes;
 import io.poten13.deepfocus.domain.user.client.NicknameGeneratorClient;
 import io.poten13.deepfocus.domain.user.dto.CreateDeviceCommand;
 import io.poten13.deepfocus.domain.user.dto.CreateSocialCommand;
 import io.poten13.deepfocus.domain.user.dto.CreateUserCommand;
+import io.poten13.deepfocus.domain.user.dto.DeleteSocialCommand;
+import io.poten13.deepfocus.domain.user.dto.DeleteUserCommand;
+import io.poten13.deepfocus.domain.user.dto.SocialModel;
 import io.poten13.deepfocus.domain.user.dto.UserModel;
 import io.poten13.deepfocus.domain.user.entity.User;
+import io.poten13.deepfocus.domain.user.support.exception.SocialNotFoundException;
 import io.poten13.deepfocus.domain.user.support.exception.UserNotFoundException;
 import io.poten13.deepfocus.global.constants.Severity;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
-import java.util.UUID;
-
-import static io.poten13.deepfocus.global.constants.Constants.*;
 
 @Service
 @RequiredArgsConstructor
@@ -26,8 +31,10 @@ public class UserService {
     private final SocialCommander socialCommander;
 
     private final UserReader userReader;
+    private final SocialReader socialReader;
+
     private final NicknameGeneratorClient nicknameGeneratorClient;
-    
+
     public Optional<UserModel> findByDeviceToken(String deviceToken) {
         return userReader.readByDeviceToken(deviceToken);
     }
@@ -88,5 +95,17 @@ public class UserService {
     @Transactional
     public void updateUserSeverity(String userToken, Severity severity) {
         userCommander.updateSeverity(userToken, severity);
+    }
+
+    @Transactional
+    public void deleteUser(String userToken) {
+        UserModel user = findByUserToken(userToken)
+            .orElseThrow(UserNotFoundException::new);
+        SocialModel social = socialReader.readByUserId(user.getUserId())
+            .orElseThrow(SocialNotFoundException::new);
+
+        socialCommander.delete(DeleteSocialCommand.from(social));
+        userCommander.delete(DeleteUserCommand.from(user));
+
     }
 }
