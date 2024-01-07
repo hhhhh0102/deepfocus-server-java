@@ -86,7 +86,7 @@ public class RefreshTokenService {
 
     public String getToken(JwtSubject subject) {
         Instant now = Instant.now();
-        Instant expiry = Instant.now().plus(Duration.ofMillis(appProperties.getJwt().getRefreshTokenExpiry()));
+        Instant expiry = Instant.now().plus(Duration.ofMillis(appProperties.getJwt().getTokenExpiry()));
         return JWT.create().withIssuer(appProperties.getJwt().getTokenIssuer())
                 .withIssuedAt(Date.from(now))
                 .withExpiresAt(Date.from(expiry))
