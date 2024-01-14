@@ -62,8 +62,8 @@ public class TaskService {
             throw new TaskTimeConflictException();
         }
         taskCommander.update(task.getTaskId(), command, userId);
+        subTaskCommander.deleteAll(task.getTaskId());
         if (!command.getSubTasks().isEmpty()) {
-            subTaskCommander.deleteAll(task.getTaskId());
             subTaskCommander.saveAll(task.getTaskId(), command.getSubTasks());
         }
         renewTaskStats(task);
